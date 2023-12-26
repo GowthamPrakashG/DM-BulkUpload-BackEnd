@@ -3,6 +3,9 @@
     public class TableCreationRequestDTO
     {
         public string TableName { get; set; }
+        public string HostName { get; set; }
+        public string DatabaseName { get; set; }
+        public string Provider { get; set; }
         public List<ColumnDefinitionDTO> Columns { get; set; }
     }
     public class ColumnDefinitionDTO
@@ -25,8 +28,6 @@
         public string True { get; set; }
         public string False { get; set; }
         public bool ColumnPrimaryKey { get; set; }
-        public string HostName { get; set; }
-        public string DatabaseName { get; set; }
     }
 
 
@@ -51,8 +52,7 @@
         public string True { get; set; }
         public string False { get; set; }
         public bool ColumnPrimaryKey { get; set; }
-        public string HostName { get; set; }
-        public string DatabaseName { get; set; }
+
     }
 
 }
