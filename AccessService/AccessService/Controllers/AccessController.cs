@@ -4,98 +4,95 @@ using AccessService.Services;
 using AccessService.Model.DTO;
 using System.Net;
 using AccessService.Models;
+using Azure;
+
 namespace AccessService.Controllers
 {
     public class AccessController : Controller
     {
+        protected APIResponse _response;
         private readonly AccessesService _accessService;
 
         public AccessController(AccessesService accessService)
         {
-            _accessService = accessService; 
+            _accessService = accessService;
+            _response = new();
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginViewModelDTO model)
+        public async Task<ActionResult<APIResponse>> Login([FromBody] LoginViewModelDTO model)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(ModelState);
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessage = ModelState.Values.SelectMany(c => c.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(_response);
                 }
+
                 var userDetailsDTO = await _accessService.AuthenticateAsync(model.Email, model.Password);
-                if (userDetailsDTO != null)
+                if (userDetailsDTO.RoleName != null || userDetailsDTO.Token != null)
                 {
-                    var responseModel = new APIResponse
-                    {
-                        StatusCode = HttpStatusCode.OK,
-                        IsSuccess = true,
-                        Result = userDetailsDTO.Token
-                    };
-                    return Ok(responseModel);
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Result = userDetailsDTO;
+                    return Ok(_response);
                 }
                 else
                 {
-                    var errorResponse = new
-                    {
-                        StatusCode = HttpStatusCode.BadRequest,
-                        IsSuccess = false,
-                        ErrorMessage = "Invalid credentials"
-                    };
-                    return BadRequest(errorResponse);
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessage = new List<string>() { "Username or password is incorrect" };
+                    return BadRequest(_response);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred: {ex.Message}");
-                return StatusCode(500, "An error occurred while processing your request.");
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.ErrorMessage = new List<string>() { $"An error occurred while processing your request: {Environment.NewLine} {ex.Message} " };
+                return BadRequest(_response);
             }
         }
 
         [HttpPost("createUser")]
-        public async Task<IActionResult> CreateUser([FromBody] UserTableModelDTO userModel)
+        public async Task<ActionResult<APIResponse>> CreateUser([FromBody] UserTableModelDTO userModel)
         {
             try
             {
-                if (!ModelState.IsValid)
+                if (!ModelState.IsValid || userModel == null)
                 {
-                    var errorResponse = new
-                    {
-                        StatusCode = HttpStatusCode.SeeOther,
-                        IsSuccess = false,
-                        ErrorMessage = "Invalid credentials"
-                    };
-                    return BadRequest(ModelState);
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessage = ModelState.Values.SelectMany(c => c.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(_response);
                 }
 
                 var createdUser = await _accessService.CreateUserAsync(userModel);
 
                 if (createdUser != null)
                 {
-                    var errorResponse = new
-                    {
-                        StatusCode = HttpStatusCode.OK,
-                        IsSuccess = true,
-                        Result = createdUser
-                    };
-                    return Ok(errorResponse);
+                    _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = true;
+                    _response.Result = createdUser;
+                    return Ok(_response);
                 }
                 else
                 {
-                    var errorResponse = new
-                    {
-                        StatusCode = HttpStatusCode.BadRequest,
-                        IsSuccess = false,
-                        ErrorMessage = "Failed to create user. Check role details and EmailId"
-                    };
-                    return BadRequest(errorResponse);
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessage = new List<string>() { "Failed to create user. Check role details and EmailId" };
+                    return BadRequest(_response);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred: {ex.Message}");
-                return StatusCode(500, "An error occurred while processing your request.");
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.ErrorMessage = new List<string>() { $"An error occurred while processing your request: {Environment.NewLine} { ex.Message } " };
+                return BadRequest(_response);
             }
         }
     }
