@@ -123,6 +123,43 @@ namespace AccessService.Services
                 return null;
             }
         }
-        
+
+        public async Task<IEnumerable<UserTableModelDTO>> GetUsersAsync()
+        {
+            return _context.UserTableModel.ToList();
+        }
+
+        public async Task<UserTableModelDTO?> GetUserAsync(int id)
+        {
+            UserTableModelDTO userTableModelDTO = await _context.UserTableModel.FirstOrDefaultAsync(c => c.Id == id);
+
+            return userTableModelDTO;
+        }
+
+        public async Task<UserTableModelDTO?> GetUserAsync(string email)
+        {
+            UserTableModelDTO userTableModelDTO = await _context.UserTableModel.FirstOrDefaultAsync(c => c.Email.Trim().ToLower() == email.Trim().ToLower());
+
+            return userTableModelDTO;
+        }
+
+        public async Task<UserTableModelDTO> UpdateUserAsync(UserTableModelDTO userTableModelDTO)
+        {
+            UserTableModelDTO userTableModel = await _context.UserTableModel.FirstOrDefaultAsync(c => c.Id == userTableModelDTO.Id);
+            var role = await _context.UserRoleModelDTO.FirstOrDefaultAsync(r => r.Id == userTableModelDTO.RoleId);
+
+            if (userTableModel != null && role != null)
+            {
+
+                userTableModelDTO.Password = HashPassword(userTableModelDTO.Password);
+                _context.Entry<UserTableModelDTO>(userTableModel).CurrentValues.SetValues(userTableModelDTO);
+                _context.SaveChanges();
+                return userTableModelDTO;
+            }
+
+            return null;
+
+        }
+
     }
 }
