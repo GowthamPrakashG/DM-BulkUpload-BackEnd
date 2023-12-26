@@ -11,8 +11,6 @@ using Dapper;
 using System.Text;
 using System.Drawing;
 using ExcelGeneration.Services;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 
 
@@ -20,18 +18,16 @@ public class ExcelService : IExcelService
 {
 
     private readonly ApplicationDbContext _context;
-    private readonly IDbConnection _dbConnection;
     private readonly ExportExcelService _exportExcelService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ExcelService(ApplicationDbContext context, IDbConnection dbConnection, ExportExcelService exportExcelService, IHttpContextAccessor httpContextAccessor)
+    public ExcelService(ApplicationDbContext context, ExportExcelService exportExcelService, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
-        _dbConnection = dbConnection;
         _exportExcelService = exportExcelService;
         _httpContextAccessor = httpContextAccessor;
-
     }
+
     public byte[] GenerateExcelFile(List<EntityColumnDTO> columns, int? parentId)
     {
         Workbook workbook = new Workbook();
@@ -153,11 +149,6 @@ public class ExcelService : IExcelService
 
             int lastRowIndex1 = worksheet.Rows.Length;
 
-
-            //worksheet.Range[lastRowIndex1 + 1, 1].Text = (i + 2).ToString();
-            //worksheet.Range[lastRowIndex1 + 1, 1].Style.HorizontalAlignment = HorizontalAlignType.Right;
-            //worksheet.Range[lastRowIndex1 + 1, 2].Text = "CurrentDate";
-            //worksheet.Range[lastRowIndex1 + 1, 3].Text = "Date";
             int entityId = GetEntityIdByEntityName(column.entityname);
             worksheet.Range["A1"].Text = entityId.ToString();
         }
@@ -288,6 +279,7 @@ public class ExcelService : IExcelService
             throw;
         }
     }
+    
     private void HighlightDuplicates(Worksheet sheet, int columnNumber, int startRow, int endRow)
     {
         string columnLetter = GetExcelColumnName(columnNumber);
@@ -297,6 +289,7 @@ public class ExcelService : IExcelService
         format.FormatType = ConditionalFormatType.DuplicateValues;
         format.BackColor = Color.IndianRed;
     }
+    
     private void AddDataValidation(Worksheet columnNamesWorksheet, List<EntityColumnDTO> columns, int? parentId)
     {
         int startRow = 2; // The first row where you want validation
@@ -1001,6 +994,7 @@ public class ExcelService : IExcelService
         }
         return columnName;
     }
+    
     private int GetEntityIdByEntityName(string entityName)
     {
         // Assuming you have a list of EntityListMetadataModel instances
@@ -1022,6 +1016,7 @@ public class ExcelService : IExcelService
             throw new Exception("Entity not found");
         }
     }
+    
     private List<EntityListMetadataModel> GetEntityListMetadataModels()
     {
         {
@@ -1030,6 +1025,7 @@ public class ExcelService : IExcelService
             return entityListMetadataModels;
         }
     }
+    
     public DataTable ReadExcelFromFormFile(IFormFile excelFile)
 
     {
@@ -1138,6 +1134,7 @@ public class ExcelService : IExcelService
         }
 
     }
+    
     public List<Dictionary<string, string>> ReadDataFromExcel(Stream excelFileStream, int rowCount)
 
     {
@@ -1213,31 +1210,7 @@ public class ExcelService : IExcelService
         }
 
     }
-    public bool IsValidDataType(string data, string expectedDataType)
-    {
-        switch (expectedDataType.ToLower())
-        {
-            case "string":
-                return true; // For a "string" data type, any non-null string is valid.
-            case "int":
-                int intResult;
-                return int.TryParse(data, out intResult); // Check if the data can be parsed as an integer.
-            case "boolean":
-                if (data.Equals("1") || data.Equals("0"))
-                {
-                    return true; // Data is a valid boolean (1 or 0).
-                }
-                bool boolResult;
-                return bool.TryParse(data, out boolResult); // Check if the data can be parsed as a boolean.
-            case "date":
-                DateTime dateResult;
-                return DateTime.TryParse(data, out dateResult); // Check if the data can be parsed as a date.
-            case "bytea":
-                return IsValidByteA(data); // Check if the data is a valid bytea.
-            default:
-                return false; // Unknown data type; you can adjust this logic accordingly.
-        }
-    }
+   
     public bool IsValidByteA(string data, int minLength, int maxLength)
     {
         // Check if the input is a valid hexadecimal string
@@ -1256,42 +1229,12 @@ public class ExcelService : IExcelService
 
         return true;
     }
-    public bool IsValidByteA(string data)
-    {
-        // Assuming that the data is represented as a hexadecimal string,
-        // you can check if it's a valid hexadecimal representation.
-        if (IsHexString(data))
-        {
-            try
-            {
-                // Convert the hexadecimal string to bytes
-                byte[] bytes = HexStringToBytes(data);
-                // You can add additional checks here if necessary
-                // For example, check if the byte array is not empty or within a specific length range.
-                return true;
-            }
-            catch (Exception)
-            {
-                // An exception occurred during hex string to byte conversion, indicating invalid data.
-                return false;
-            }
-        }
-        return false;
-    }
+    
     public bool IsHexString(string input)
     {
         return System.Text.RegularExpressions.Regex.IsMatch(input, @"\A\b[0-9a-fA-F]+\b\Z");
     }
-    public byte[] HexStringToBytes(string hex)
-    {
-        int length = hex.Length / 2;
-        byte[] bytes = new byte[length];
-        for (int i = 0; i < length; i++)
-        {
-            bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
-        }
-        return bytes;
-    }
+    
     public IEnumerable<EntityColumnDTO> GetColumnsForEntity(string entityName)
     {
         var entity = _context.EntityListMetadataModels.FirstOrDefault(e => e.EntityName == entityName);
@@ -1325,6 +1268,7 @@ public class ExcelService : IExcelService
         }
         return columnsDTO;
     }
+    
     public async Task<ValidationResultData> ValidateNotNull(DataTable excelData, List<EntityColumnDTO> columnsDTO)
     {
         List<string> badRows = new List<string>();
@@ -1364,48 +1308,7 @@ public class ExcelService : IExcelService
         // Return both results
         return new ValidationResultData { BadRows = badRows, SuccessData = validRowsDataTable, errorcolumns = errorColumnNames, Column_Name = string.Empty };
     }
-    public DataTypeValidationResult ValidateDataTypes(ValidationResultData validationResult, List<EntityColumnDTO> columnsDTO)
-    {
-        List<string> badRows = new List<string>();
-
-        // Access ValidRowsDataTable from the provided ValidationResult
-        DataTable validRowsDataTable = validationResult.SuccessData;
-
-        // Data Type Validation
-        DataTable validDataTypesDataTable = validRowsDataTable.Clone();
-
-        for (int row = 0; row < validRowsDataTable.Rows.Count; row++)
-        {
-            bool rowValidationFailed = false;
-
-            for (int col = 0; col < validRowsDataTable.Columns.Count - 2; col++)
-            {
-                string cellData = validRowsDataTable.Rows[row][col].ToString();
-                EntityColumnDTO columnDTO = columnsDTO[col];
-
-
-            }
-
-            // If row validation succeeded, add the entire row to the validDataTypesDataTable
-            if (!rowValidationFailed)
-            {
-                validDataTypesDataTable.Rows.Add(validRowsDataTable.Rows[row].ItemArray);
-            }
-            // If row validation failed, add the entire row data as a comma-separated string to the badRows list
-            else
-            {
-                string badRow = string.Join(",", validRowsDataTable.Rows[row].ItemArray);
-                badRows.Add(badRow);
-            }
-        }
-
-        // Return both results
-        return new DataTypeValidationResult
-        {
-            BadRows = badRows,
-            ValidDataTypesDataTable = validDataTypesDataTable
-        };
-    }
+    
     public async Task<ValidationResultData> ValidatePrimaryKeyAsync(ValidationResultData validationResult, List<EntityColumnDTO> columnsDTO, string tableName)
     {
         List<string> badRows = new List<string>();
@@ -1518,6 +1421,7 @@ public class ExcelService : IExcelService
         // Return both results
         return new ValidationResult { ErrorRowNumber = values, Filedatas = baddatas, errorMessages = errorMessages };
     }
+    
     public async Task<LogDTO> Createlog(string tableName, List<string> filedata, string fileName, int successdata, List<string> errorMessage, int total_count, List<string> ErrorRowNumber)
 
     {
@@ -1655,15 +1559,10 @@ public class ExcelService : IExcelService
         return logDTO;
 
     }
-
+    
     public void InsertDataFromDataTableToPostgreSQL(DataTable data, string tableName, List<string> columns, IFormFile file)
-
     {
-
         var columnProperties = GetColumnsForEntity(tableName).ToList();
-
-
-
         var booleancolumns = columnProperties.Where(c => c.Datatype.ToLower() == "boolean").ToList();
 
         var listofvaluecolumns = columnProperties.Where(c => c.Datatype.ToLower() == "listofvalue").ToList();
@@ -1671,61 +1570,39 @@ public class ExcelService : IExcelService
         List<Dictionary<string, string>> convertedDataList = new List<Dictionary<string, string>>();
 
         foreach (DataRow row in data.Rows)
-
         {
-
             Dictionary<string, string> convertedData = new Dictionary<string, string>();
-
             for (int i = 0; i < row.ItemArray.Length; i++)
-
             {
-
                 string cellValue = row[i].ToString();
 
                 EntityColumnDTO columnProperty = columnProperties.FirstOrDefault(col => col.EntityColumnName == data.Columns[i].ColumnName);
 
                 if (columnProperty != null)
-
                 {
-
                     // Use the column name from ColumnProperties as the key and the cell value as the value
-
                     convertedData[columnProperty.EntityColumnName] = cellValue;
-
                 }
-
             }
-
             convertedDataList.Add(convertedData);
-
         }
-
         // 'convertedDataList' is now a list of dictionaries, each representing a row in the desired format.
-
-        IConfigurationBuilder configurationBuilder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.Development.json");
-
         var storeentity = _context.EntityListMetadataModels.FirstOrDefaultAsync(x => x.EntityName.ToLower() == tableName.ToLower());
 
         tableName = storeentity.Result.EntityName;
-
-        IConfigurationRoot configuration = configurationBuilder.Build();
 
         var connectionString = _httpContextAccessor.HttpContext.Session.GetString("ConnectionString");
 
         var errorDataList = convertedDataList;
 
         using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
-
         {
-
             connection.Open();
 
             List<Dictionary<string, string>> dataToRemove = new List<Dictionary<string, string>>();
 
             try
-
             {
-
                 foreach (var data2 in convertedDataList)
                 {
                     foreach (var boolvalue in booleancolumns)
@@ -1744,70 +1621,63 @@ public class ExcelService : IExcelService
                             }
                         }
                     }
-                    foreach (var lof in listofvaluecolumns)
-                    {
-                        if (data2.ContainsKey(lof.EntityColumnName))
-                        {
-                            var value = data2[lof.EntityColumnName];
-                            // Find the index of the semicolon
-                            int semicolonIndex = value.IndexOf(':');
-                            // Extract the substring before the semicolon
-                            string extractedValue = (semicolonIndex >= 0) ? value.Substring(0, semicolonIndex) : value;
-                            // Use null-conditional operator and null-coalescing operator to parse and assign
-                            int intValue = int.TryParse(extractedValue, out int temp) ? temp : 0;
+                    //foreach (var lof in listofvaluecolumns)
+                    //{
+                    //    if (data2.ContainsKey(lof.EntityColumnName))
+                    //    {
+                    //        var value = data2[lof.EntityColumnName];
+                    //        // Find the index of the semicolon
+                    //        int semicolonIndex = value.IndexOf(':');
+                    //        // Extract the substring before the semicolon
+                    //        string extractedValue = (semicolonIndex >= 0) ? value.Substring(0, semicolonIndex) : value;
+                    //        // Use null-conditional operator and null-coalescing operator to parse and assign
+                    //        int intValue = int.TryParse(extractedValue, out int temp) ? temp : 0;
 
-                            int listvalue = lof.ListEntityKey;
+                    //        int listvalue = lof.ListEntityKey;
 
-                            int listentityidvalue = lof.ListEntityId;
+                    //        int listentityidvalue = lof.ListEntityId;
 
+                    //        // Use Entity Framework Core to get the table name
+                    //        var tableNameEntity = _context.EntityColumnListMetadataModels.FirstOrDefault(mapping => mapping.ListEntityId == listentityidvalue);
 
-                            // Use Entity Framework Core to get the table name
-                            var tableNameEntity = _context.EntityColumnListMetadataModels.FirstOrDefault(mapping => mapping.ListEntityId == listentityidvalue);
-
-                            //primarykey column
-                            var primarykey = _context.EntityColumnListMetadataModels.FirstOrDefault(mapping => mapping.ListEntityKey == listvalue);
-
-
-                            // Query the EntityListMetadataModels DbSet to get the EntityName based on the listEntityId
-                            var entityNameEntity = _context.EntityListMetadataModels.FirstOrDefault(entity => entity.Id == tableNameEntity.ListEntityId);
-                            string tableNames = entityNameEntity.EntityName;
-
-                            // Dynamically query the table based on the provided table name
-                            string rowDataQuery = $"SELECT * FROM public.\"{tableNames}\"";
-                            // Use NpgsqlDataAdapter to fetch data from the table
-                            using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(rowDataQuery, connectionString))
-                            {
-                                DataTable dataTable = new DataTable();
-                                adapter.Fill(dataTable);
-
-                                // Assuming you have the DataTable named 'dataTable'
-                                int rowIndexToRetrieve = intValue - 1;
-
-                                if (rowIndexToRetrieve >= 0 && rowIndexToRetrieve < dataTable.Rows.Count)
-                                {
-                                    DataRow rowToRetrieve = dataTable.Rows[rowIndexToRetrieve];
+                    //        //primarykey column
+                    //        var primarykey = _context.EntityColumnListMetadataModels.FirstOrDefault(mapping => mapping.ListEntityKey == listvalue);
 
 
-                                    // Use LINQ to get column names and values for the specified row
-                                    if (dataTable.Columns.Contains(primarykey.EntityColumnName))
-                                    {
-                                        // Retrieve the value of the specified column for the specified row
-                                        object columnValue = rowToRetrieve[primarykey.EntityColumnName];
-                                        data2[lof.EntityColumnName] = columnValue.ToString();
+                    //        // Query the EntityListMetadataModels DbSet to get the EntityName based on the listEntityId
+                    //        var entityNameEntity = _context.EntityListMetadataModels.FirstOrDefault(entity => entity.Id == tableNameEntity.ListEntityId);
+                    //        string tableNames = entityNameEntity.EntityName;
 
+                    //        // Dynamically query the table based on the provided table name
+                    //        string rowDataQuery = $"SELECT * FROM public.\"{tableNames}\"";
+                    //        // Use NpgsqlDataAdapter to fetch data from the table
+                    //        using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(rowDataQuery, connectionString))
+                    //        {
+                    //            DataTable dataTable = new DataTable();
+                    //            adapter.Fill(dataTable);
 
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    //            // Assuming you have the DataTable named 'dataTable'
+                    //            int rowIndexToRetrieve = intValue - 1;
+
+                    //            if (rowIndexToRetrieve >= 0 && rowIndexToRetrieve < dataTable.Rows.Count)
+                    //            {
+                    //                DataRow rowToRetrieve = dataTable.Rows[rowIndexToRetrieve];
+                                    
+                    //                // Use LINQ to get column names and values for the specified row
+                    //                if (dataTable.Columns.Contains(primarykey.EntityColumnName))
+                    //                {
+                    //                    // Retrieve the value of the specified column for the specified row
+                    //                    object columnValue = rowToRetrieve[primarykey.EntityColumnName];
+                    //                    data2[lof.EntityColumnName] = columnValue.ToString();
+                    //                }
+                    //            }
+                    //        }
+                    //    }
+                    //}
 
                     using (NpgsqlCommand cmd = new NpgsqlCommand())
-
                     {
-
                         cmd.Connection = connection;
-
                         // Build the INSERT statement
 
                         string columns2 = string.Join(", ", data2.Keys.Select(k => $"\"{k}\"")); // Use double quotes for case-sensitive column names
@@ -1823,17 +1693,11 @@ public class ExcelService : IExcelService
                         dataToRemove.Add(data2);
 
                     }
-
                 }
-
                 connection.Close();
-
             }
-
             catch (Exception ex)
-
             {
-
                 connection.Close();
 
                 var successdata = convertedDataList.Count - errorDataList.Count;
@@ -1849,46 +1713,29 @@ public class ExcelService : IExcelService
                 List<string> badRows = new List<string>();
 
                 foreach (var dataToRemoveItem in dataToRemove)
-
                 {
-
                     errorDataList.Remove(dataToRemoveItem);
-
                 }
-
                 foreach (var dict in errorDataList)
-
                 {
-
                     StringBuilder sb = new StringBuilder();
-
                     foreach (var value in dict.Values)
-
                     {
 
                         if (sb.Length > 0)
-
                             sb.Append(", ");
-
                         sb.Append(value);
-
                     }
-
                     badRows.Add(sb.ToString());
-
                 }
 
                 string comma_separated_string = string.Join(",", columns.ToArray());
-
                 badRows.Insert(0, comma_separated_string);
-
                 var result = Createlog(tableName, badRows, fileName, successdata, new List<string> { errorMessages }, convertedDataList.Count, errorRownumber);
-
             }
-
         }
-
     }
+    
     public int GetEntityIdByEntityNamefromui(string entityName)
     {
         // Assuming you have a list of EntityListMetadataModel instances
@@ -1910,6 +1757,7 @@ public class ExcelService : IExcelService
             throw new Exception("Entity not found");//return null
         }
     }
+    
     public List<EntityListMetadataModel> GetEntityListMetadataModelforlist()
     {
         {
@@ -1946,6 +1794,7 @@ public class ExcelService : IExcelService
             .FirstOrDefault();
         return primaryKeyColumn;
     }
+    
     public async Task<List<string>> GetAllIdsFromDynamicTable(string tableName)
     {
         string primaryKeyColumn = GetPrimaryKeyColumnForEntity(tableName);
@@ -1978,6 +1827,7 @@ public class ExcelService : IExcelService
             throw new Exception("Error fetching IDs from the specified table.", ex);
         }
     }
+    
     public bool TableExists(string tableName)
     {
         try
@@ -2009,61 +1859,6 @@ public class ExcelService : IExcelService
             // Rethrow the exception
             throw;
         }
-    }
-
-
-    public async Task<(string TableName, List<dynamic> Rows)> GetTableDataByListEntityId(int listEntityId)
-
-    {
-        // Use Entity Framework Core to get the table name
-        var tableNameEntity = _context.EntityColumnListMetadataModels.FirstOrDefault(mapping => mapping.ListEntityId == listEntityId);
-
-        if (tableNameEntity == null)
-        {
-            // Handle the case where the table name is not found
-            return (null, null);
-        }
-
-        // Query the EntityListMetadataModels DbSet to get the EntityName based on the listEntityId
-        var entityNameEntity = _context.EntityListMetadataModels.FirstOrDefault(entity => entity.Id == tableNameEntity.ListEntityId);
-
-
-        if (entityNameEntity == null)
-        {
-            // Handle the case where the EntityName is not found
-            return (null, null);
-        }
-
-        string tableName = entityNameEntity.EntityName;
-
-        try
-        {
-            var connectionString = _httpContextAccessor.HttpContext.Session.GetString("ConnectionString");
-
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                throw new InvalidOperationException("Connection string not found in the session.");
-            }
-
-            using (IDbConnection dbConnection = new NpgsqlConnection(connectionString))
-            {
-                dbConnection.Open();
-
-                // Dynamically query the table based on the provided table name
-                string rowDataQuery = $"SELECT * FROM public.\"{tableName}\"";
-
-                // Use Dapper to execute the query and return the results
-                var rows = dbConnection.Query(rowDataQuery).ToList();
-
-                return (tableName, rows);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"An error occurred in GetTableDataByListEntityId: {ex.Message}");
-            throw;
-        }
-
     }
 
     public (int EntityId, string EntityColumnName) GetAllEntityColumnData(int checklistEntityValue)
@@ -2137,6 +1932,7 @@ public class ExcelService : IExcelService
             throw;
         }
     }
+
 }
 
 
