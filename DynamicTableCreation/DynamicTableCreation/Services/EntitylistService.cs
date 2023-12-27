@@ -11,11 +11,11 @@ namespace DynamicTableCreation.Services
         {
             _context = context;
         }
-        public IEnumerable<EntityListDto> GetEntityList()
+        public IEnumerable<EntityListDto> GetEntityList(string HostName, string DatabaseName, string ProviderName)
         {
             try
             {
-                var entityList = _context.EntityListMetadataModels
+                var entityList = _context.EntityListMetadataModels.Where(entlist => entlist.HostName == HostName && entlist.DatabaseName == DatabaseName && entlist.Provider == ProviderName)
                     .Select(entlist => new EntityListDto { EntityName = entlist.EntityName })
                     .ToList();
                 return entityList;
