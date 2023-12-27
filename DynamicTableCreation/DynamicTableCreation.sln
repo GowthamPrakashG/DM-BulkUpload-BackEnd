@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelGeneration", "..\Excel
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BulkUploadModule", "..\BulkUploadModule\BulkUploadModule.csproj", "{6A581390-4DD9-4AB0-8482-A13B9CDAC534}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccessService", "..\AccessService\AccessService\AccessService.csproj", "{C2770B09-C0FB-4419-9CC8-168733721847}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AccessService", "..\AccessService\AccessService\AccessService.csproj", "{C2770B09-C0FB-4419-9CC8-168733721847}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MigrateEntity", "MigrateEntity\MigrateEntity.csproj", "{3C9CE0AB-8489-401A-8B1C-0ED5AEDCA454}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{C2770B09-C0FB-4419-9CC8-168733721847}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2770B09-C0FB-4419-9CC8-168733721847}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2770B09-C0FB-4419-9CC8-168733721847}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C9CE0AB-8489-401A-8B1C-0ED5AEDCA454}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C9CE0AB-8489-401A-8B1C-0ED5AEDCA454}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C9CE0AB-8489-401A-8B1C-0ED5AEDCA454}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C9CE0AB-8489-401A-8B1C-0ED5AEDCA454}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
