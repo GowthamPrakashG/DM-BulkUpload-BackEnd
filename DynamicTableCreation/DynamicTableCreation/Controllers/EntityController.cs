@@ -107,11 +107,11 @@ namespace ExcelGeneration.Controllers
         [ProducesResponseType(200)]
         [Route("api/entitylist")]
         [EnableCors("AllowAngularDev")]
-        public ActionResult<IEnumerable<EntityListDto>> Get()
+        public ActionResult<IEnumerable<EntityListDto>> Get([FromQuery] EntitylistConditionDTO entitylistConditionDTO)
         {
             try
             {
-                var tablename = _entitylistService.GetEntityList();
+                var tablename = _entitylistService.GetEntityList(entitylistConditionDTO.HostName,entitylistConditionDTO.DatabaseName,entitylistConditionDTO.ProviderName);
 
                 if (tablename == null)
                 {
