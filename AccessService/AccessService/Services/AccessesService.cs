@@ -197,5 +197,30 @@ namespace AccessService.Services
 
         }
 
+
+        public List<RoleDTO> GetRoleIdsAndNames()
+        {
+            try
+            {
+                var roleData = _context.RoleEntity
+                    .Select(role => new RoleDTO
+                    {
+                        Id = role.Id,
+                        RoleName = role.RoleName
+                    })
+                    .ToList();
+
+                return roleData;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it as needed
+                Console.WriteLine($"An error occurred: {ex.Message}");
+                // You might want to throw an exception or return an error response here
+                return null;
+            }
+        }
+
+
     }
 }
