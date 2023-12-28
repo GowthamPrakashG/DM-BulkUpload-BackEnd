@@ -248,5 +248,41 @@ namespace AccessService.Controllers
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }
+
+        [HttpGet("getRoleIdsAndNames")]
+        public ActionResult<List<RoleDTO>> GetRoleIdsAndNames()
+        {
+            try
+            {
+                var roleData = _accessService.GetRoleIdsAndNames();
+
+                if (roleData != null && roleData.Any())
+                {
+                    var response = new
+                    {
+                        StatusCode = 200, // OK
+                        IsSuccess = true,
+                        Result = roleData
+                    };
+                    return Ok(response);
+                }
+                else
+                {
+                    var response = new
+                    {
+                        StatusCode = 204, // No Content
+                        IsSuccess = false,
+                        ErrorMessage = "No roles found."
+                    };
+                    return Ok(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
+        }
+
     }
 }
