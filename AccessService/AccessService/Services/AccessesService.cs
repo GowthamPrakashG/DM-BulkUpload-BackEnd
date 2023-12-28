@@ -5,8 +5,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using AccessService.Data;
 using Microsoft.EntityFrameworkCore;
+using DbContextUtility.Data;
+using DbContextUtility.Models;
 
 namespace AccessService.Services
 {
@@ -23,27 +24,33 @@ namespace AccessService.Services
         public async Task<UserDetailsDTO> AuthenticateAsync(string Email, string password)
         {
           
-            var user = await _context.UserTableModel.FirstOrDefaultAsync(u => u.Email == Email);
+            var user = await _context.UserEntity.FirstOrDefaultAsync(u => u.Email == Email);
+            if (user == null)
+            {
+                return null;
+            }
+
+            UserDTO userDTO = (UserDTO)user;
 
             if (user != null)
             {
                 if (VerifyPassword(user.Password, password))
                 {
-                    var role = await _context.UserRoleModel.FirstOrDefaultAsync(r => r.Id == user.RoleId);
+                    var role = await _context.RoleEntity.FirstOrDefaultAsync(r => r.Id == user.RoleId);
                     var userDetailsDTO = new UserDetailsDTO
                     {
                         //Id = user.Id,
                         //Email = user.Email,
                         //RoleId = user.RoleId,
                         RoleName = role?.RoleName,
-                        Token = GenerateJwtToken(user)
+                        Token = GenerateJwtToken(userDTO)
                     };
                     return userDetailsDTO;
                 }
             }
             return null;
         }
-        public string GenerateJwtToken(UserTableModelDTO user)
+        public string GenerateJwtToken(UserDTO user)
         {
 
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -73,35 +80,42 @@ namespace AccessService.Services
 
         private bool VerifyPassword(string storedHashedPassword, string enteredPassword)
         {
-            var passwordHasher = new PasswordHasher<UserTableModelDTO>();
+            var passwordHasher = new PasswordHasher<UserDTO>();
             var passwordVerificationResult = passwordHasher.VerifyHashedPassword(null, storedHashedPassword, enteredPassword);
             return passwordVerificationResult == PasswordVerificationResult.Success;
         }
 
-        public async Task<UserTableModelDTO> CreateUserAsync(UserTableModelDTO userModel)
+        public async Task<UserDTO> CreateUserAsync(UserDTO userModel)
         {
-            var role = await _context.UserRoleModelDTO.FirstOrDefaultAsync(r => r.Id == userModel.RoleId);
-            bool isEmailExist = await _context.UserTableModel.AnyAsync(u => u.Email == userModel.Email);
+            var role = await _context.RoleEntity.FirstOrDefaultAsync(r => r.Id == userModel.RoleId);
+            bool isEmailExist = await _context.UserEntity.AnyAsync(u => u.Email == userModel.Email);
            
             if (role != null && isEmailExist == false)
             {
-                var newUser = new UserTableModelDTO
+                var newUser = new UserEntity
                 {
                     Name = userModel.Name,
                     RoleId = role.Id,
                     Email = userModel.Email,
-                    Password = HashPassword(userModel.Password)
+                    Password = HashPassword(userModel.Password),
+                    Phonenumber = userModel.Phonenumber,
+                    Gender = userModel.Gender,
+                    DOB = userModel.DOB,
+                    Status = userModel.Status,
+                    CreatedDate = DateTime.UtcNow,
+                    UpdatedDate = DateTime.UtcNow
                 };
-                _context.UserTableModel.Add(newUser);
+
+                _context.UserEntity.Add(newUser);
                 await _context.SaveChangesAsync();
-                return newUser;
+                return userModel;
             }
             return null;
         }
 
         private string HashPassword(string password)
         {
-            var passwordHasher = new PasswordHasher<UserTableModelDTO>();
+            var passwordHasher = new PasswordHasher<UserDTO>();
             return passwordHasher.HashPassword(null, password);
         }
         
@@ -114,7 +128,7 @@ namespace AccessService.Services
 
             else
             {
-                var role =  _context.UserRoleModel.FirstOrDefault(x => x.Id == Id);
+                var role =  _context.RoleEntity.FirstOrDefault(x => x.Id == Id);
 
                 if (role != null)
                 {
@@ -124,35 +138,57 @@ namespace AccessService.Services
             }
         }
 
-        public async Task<IEnumerable<UserTableModelDTO>> GetUsersAsync()
+        public async Task<IEnumerable<UserDTO>> GetUsersAsync()
         {
-            return _context.UserTableModel.ToList();
+            var users =  _context.UserEntity.ToList();
+
+            var userDTO = new List<UserDTO>();
+
+            userDTO.AddRange(users.Select(c => (UserDTO)c));
+
+            return userDTO;
         }
 
-        public async Task<UserTableModelDTO?> GetUserAsync(int id)
+        public async Task<UserDTO?> GetUserAsync(int id)
         {
-            UserTableModelDTO userTableModelDTO = await _context.UserTableModel.FirstOrDefaultAsync(c => c.Id == id);
 
-            return userTableModelDTO;
+            var user = await _context.UserEntity.FirstOrDefaultAsync(c => c.Id == id);
+
+            if(user == null)
+            {
+                return null;
+            }
+
+            UserDTO userDTO = (UserDTO)user;
+
+            return userDTO;
         }
 
-        public async Task<UserTableModelDTO?> GetUserAsync(string email)
+        public async Task<UserDTO?> GetUserAsync(string email)
         {
-            UserTableModelDTO userTableModelDTO = await _context.UserTableModel.FirstOrDefaultAsync(c => c.Email.Trim().ToLower() == email.Trim().ToLower());
+            var user = await _context.UserEntity.FirstOrDefaultAsync(c => c.Email.Trim().ToLower() == email.Trim().ToLower());
 
-            return userTableModelDTO;
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            UserDTO userDTO = (UserDTO)user;
+
+            return userDTO;
         }
 
-        public async Task<UserTableModelDTO> UpdateUserAsync(UserTableModelDTO userTableModelDTO)
+        public async Task<UserDTO> UpdateUserAsync(UserDTO userTableModelDTO)
         {
-            UserTableModelDTO userTableModel = await _context.UserTableModel.FirstOrDefaultAsync(c => c.Id == userTableModelDTO.Id);
-            var role = await _context.UserRoleModelDTO.FirstOrDefaultAsync(r => r.Id == userTableModelDTO.RoleId);
+            UserEntity user = await _context.UserEntity.FirstOrDefaultAsync(c => c.Id == userTableModelDTO.Id);
+            var role = await _context.RoleEntity.FirstOrDefaultAsync(r => r.Id == userTableModelDTO.RoleId);
 
-            if (userTableModel != null && role != null)
+            if (user != null && role != null)
             {
 
                 userTableModelDTO.Password = HashPassword(userTableModelDTO.Password);
-                _context.Entry<UserTableModelDTO>(userTableModel).CurrentValues.SetValues(userTableModelDTO);
+                _context.Entry<UserEntity>(user).CurrentValues.SetValues(userTableModelDTO);
                 _context.SaveChanges();
                 return userTableModelDTO;
             }

@@ -4,6 +4,8 @@ using AccessService.Services;
 using AccessService.Model.DTO;
 using System.Net;
 using AccessService.Models;
+using DbContextUtility.Models;
+
 namespace AccessService.Controllers
 {
     public class AccessController : Controller
@@ -16,7 +18,7 @@ namespace AccessService.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginViewModelDTO model)
+        public async Task<IActionResult> Login([FromBody] LoginDTO model)
         {
             try
             {
@@ -54,7 +56,7 @@ namespace AccessService.Controllers
         }
 
         [HttpPost("createUser")]
-        public async Task<IActionResult> CreateUser([FromBody] UserTableModelDTO userModel)
+        public async Task<IActionResult> CreateUser([FromBody] UserDTO userModel)
         {
             try
             {
@@ -202,7 +204,7 @@ namespace AccessService.Controllers
         }
 
         [HttpPut("UpdateUserbyId")]
-        public async Task<IActionResult> UpdateUser([FromBody] UserTableModelDTO userTableModelDTO)
+        public async Task<IActionResult> UpdateUser([FromBody] UserDTO userTableModelDTO)
         {
             try
             {

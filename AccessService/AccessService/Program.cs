@@ -1,10 +1,10 @@
-using AccessService.Data;
+
 using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using AccessService.Services;
 using AccessService.Models.DTO;
-
+using DbContextUtility.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpContextAccessor();
@@ -30,8 +30,8 @@ builder.Services.AddSession(options =>
 });
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDistributedMemoryCache(); // Use an in-memory cache provider for session
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 //builder.Services.AddScoped<AccessService>();
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<AccessesService>();
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
