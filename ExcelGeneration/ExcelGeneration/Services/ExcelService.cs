@@ -246,9 +246,13 @@ public class ExcelService : IExcelService
                 string[] rows = logChild.Filedata.Split(';');
 
                 string errorMessage = logChild.ErrorMessage;
+                string errorrowNumber = logChild.ErrorRowNumber;
 
                 // Set the column name as "ErrorMessage" for the last column after processing all rows
                 columnNamesWorksheet.Range[rowIndex - 1, columns.Count + 1].Text = "ErrorMessage";
+                columnNamesWorksheet.Range[rowIndex - 1, columns.Count + 2].Text = "ErrorRowNumber";
+                // Split ErrorRowNumber into individual values
+                string[] errorRowNumbers = errorrowNumber.Split(',');
 
                 for (int i = 1; i < rows.Length; i++)
                 {
@@ -258,28 +262,21 @@ public class ExcelService : IExcelService
                     }
                     string cleanedRow = rows[i].TrimStart(';').Trim();
                     string[] values = cleanedRow.Split(',');
-                    for (int columnIndex = 0; columnIndex < values.Length; columnIndex++)
-                    {
-                        columnNamesWorksheet.Range[rowIndex, columnIndex + 1].Text = values[columnIndex];
-                    }
 
-
-                    //    columnNamesWorksheet.Range[rowIndex, values.Length + 1].Text = errorMessage;
-                    // Set the error message in the "ErrorMessage" column
+                    // Display each ErrorRowNumber on a separate row
+                    columnNamesWorksheet.Range[rowIndex, 1].Text = values[0];  // Assuming id is the first column
+                    columnNamesWorksheet.Range[rowIndex, 2].Text = values[1];  // Assuming username is the second column
                     columnNamesWorksheet.Range[rowIndex, columns.Count + 1].Text = errorMessage;
-
+                    columnNamesWorksheet.Range[rowIndex, columns.Count + 2].Text = errorRowNumbers[i - 1]; // Use (i - 1) to get the corresponding ErrorRowNumber
                     rowIndex++;
                 }
-
             }
-
         }
         catch (Exception ex)
         {
             throw;
         }
     }
-    
     private void HighlightDuplicates(Worksheet sheet, int columnNumber, int startRow, int endRow)
     {
         string columnLetter = GetExcelColumnName(columnNumber);
