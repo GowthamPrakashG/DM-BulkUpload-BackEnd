@@ -41,6 +41,9 @@ namespace DynamicTableCreation.Services
                 return new TableCreationRequest
                 {
                     TableName = dto.TableName,
+                    HostName = dto.HostName,
+                    DatabaseName=dto.DatabaseName,
+                    Provider=dto.Provider,
                     Columns = dto.Columns.Select(columnDto => new ColumnDefinition
                     {
                         EntityColumnName = columnDto.EntityColumnName,
@@ -536,8 +539,6 @@ namespace DynamicTableCreation.Services
                 ListEntityValue = entityColumn.ListEntityValue | 0,
                 True = entityColumn.True,
                 False = entityColumn.False,
-                HostName = "",
-                DatabaseName = "",
                 ColumnPrimaryKey = entityColumn.ColumnPrimaryKey,
             };
         }

@@ -15,17 +15,26 @@ namespace DynamicTableCreation.Services
         {
             try
             {
-                var entityList = _context.EntityListMetadataModels.Where(entlist => entlist.HostName == HostName && entlist.DatabaseName == DatabaseName && entlist.Provider == ProviderName)
-                    .Select(entlist => new EntityListDto { EntityName = entlist.EntityName })
+                var entityNames = _context.EntityListMetadataModels
+                    .Where(x => x.HostName.ToLower() == HostName.ToLower() && x.DatabaseName.ToLower() == DatabaseName.ToLower())
+                    .Select(x => x.EntityName)
                     .ToList();
-                return entityList;
+
+                // Create a list of EntityListDto
+                var entityListDtos = entityNames.Select(entityName => new EntityListDto
+                {
+                    // Set properties of EntityListDto based on your logic
+                    EntityName = entityName,
+                    // Set other properties as needed
+                }).ToList();
+
+                return entityListDtos;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"An error occurred in GetEntityList: {ex.Message}");
-                throw; 
+                throw;
             }
         }
-
     }
 }
