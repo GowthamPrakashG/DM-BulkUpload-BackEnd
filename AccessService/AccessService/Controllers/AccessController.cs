@@ -135,6 +135,42 @@ namespace AccessService.Controllers
             }
         }
 
+        [HttpGet("GetUserRoleById")]
+        public async Task<IActionResult> GetUserRoleById(int id)
+        {
+            try
+            {
+                var userRole = await _accessService.GetUserRoleByIdAsync(id);
+
+                if (userRole != null)
+                {
+                    var response = new
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        IsSuccess = true,
+                        Result = userRole
+                    };
+                    return Ok(response);
+                }
+                else
+                {
+                    var response = new
+                    {
+                        StatusCode = HttpStatusCode.NoContent,
+                        IsSuccess = false,
+                        ErrorMessage = "User not found or user role not available."
+                    };
+                    return Ok(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
+        }
+
+
         [HttpGet("GetUserbyId")]
         public async Task<IActionResult> GetUser(int id)
         {

@@ -148,6 +148,17 @@ namespace AccessService.Services
 
             return userDTO;
         }
+        public async Task<string> GetUserRoleByIdAsync(int userId)
+        {
+            var user = await _context.UserEntity.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user != null)
+            {
+                return Getrole(user.RoleId);
+            }
+
+            return null;
+        }
 
         public async Task<UserDTO?> GetUserAsync(int id)
         {
