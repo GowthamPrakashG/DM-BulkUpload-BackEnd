@@ -294,7 +294,7 @@ public class ExcelService : IExcelService
 
         if (parentId.HasValue)
         {
-            int columnCount = columnNamesWorksheet.Columns.Length - 1;
+            int columnCount = columnNamesWorksheet.Columns.Length - 2;
             char letter = 'A';
             char lastletter = 'A';
             // Protect the worksheet with a password
@@ -1278,7 +1278,7 @@ public class ExcelService : IExcelService
 
             string badRow = string.Join(",", excelData.Rows[row].ItemArray);
 
-            for (int col = 0; col < excelData.Columns.Count - 2; col++)
+            for (int col = 0; col < excelData.Columns.Count - 3; col++)
             {
                 string cellData = excelData.Rows[row][col].ToString();
                 EntityColumnDTO columnDTO = columnsDTO[col];
@@ -1314,7 +1314,7 @@ public class ExcelService : IExcelService
         DataTable successdata = validRowsDataTable.Clone();
         List<int> primaryKeyColumns = new List<int>();
 
-        for (int col = 0; col < validRowsDataTable.Columns.Count - 2; col++)
+        for (int col = 0; col < validRowsDataTable.Columns.Count - 3; col++)
         {
             EntityColumnDTO columnDTO = columnsDTO[col];
             if (columnDTO.ColumnPrimaryKey)
