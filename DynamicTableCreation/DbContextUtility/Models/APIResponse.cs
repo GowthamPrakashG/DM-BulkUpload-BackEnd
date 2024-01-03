@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace AccessService.Models
+namespace DbContextUtility.Models
 {
     public class APIResponse
     {
@@ -13,4 +13,6 @@ namespace AccessService.Models
         public List<string> ErrorMessage { get; set; }
         public object Result { get; set; }
     }
+
 }
+

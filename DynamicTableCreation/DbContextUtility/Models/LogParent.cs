@@ -1,9 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AccessService.Models
+namespace DbContextUtility.Models
 {
     public class LogParent
     {
+        [Key]
         public int ID { get; set; }
         public DateTime Timestamp { get; set; }
         public int RecordCount { get; set; }
@@ -14,6 +16,5 @@ namespace AccessService.Models
 
         [ForeignKey("Entity_Id")]
         public int Entity_Id { get; set; }
-
     }
 }

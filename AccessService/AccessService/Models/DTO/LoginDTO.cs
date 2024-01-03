@@ -1,6 +1,6 @@
 ﻿namespace AccessService.Models.DTO
 {
-    public class LoginViewModelDTO
+    public class LoginDTO
     {
         public string Email { get; set; }
         public string Password { get; set; }
