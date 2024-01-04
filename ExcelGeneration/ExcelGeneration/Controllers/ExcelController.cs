@@ -188,6 +188,23 @@ namespace ExcelGeneration.Controllers
                         }
                     }
 
+                    //Range Validation
+
+                    validationResultData = await _excelService.ValidateRange(validationResult, columnsDTO, tableName);
+
+                    if (validationResultData.BadRows.Count > 0)
+                    {
+                        var resultparams = await _excelService.resultparamsforrange(validationResultData, comma_separated_string, tableName);
+
+                        if (resultparams != null)
+                        {
+                            filedatas.Add(resultparams.Filedatas);
+                            errorMessages.Add(resultparams.errorMessages);
+                            ErrorRowNumber.Add(resultparams.ErrorRowNumber);
+                        }
+                    }
+
+
                 }
 
 
