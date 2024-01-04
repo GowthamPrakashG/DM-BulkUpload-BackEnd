@@ -1278,22 +1278,46 @@ public class ExcelService : IExcelService
 
             string badRow = string.Join(",", excelData.Rows[row].ItemArray);
 
-            for (int col = 0; col < excelData.Columns.Count - 3; col++)
+            if (excelData.Columns.Contains("ErrorMessage"))
             {
-                string cellData = excelData.Rows[row][col].ToString();
-                EntityColumnDTO columnDTO = columnsDTO[col];
-
-                if (columnDTO.IsNullable == true && string.IsNullOrEmpty(cellData))
+                for (int col = 0; col < excelData.Columns.Count - 3; col++)
                 {
-                    rowValidationFailed = true;
-                    badRows.Add(badRow);
-                    if (!errorColumnNames.Contains(columnDTO.EntityColumnName))
-                    {
-                        errorColumnNames.Add(columnDTO.EntityColumnName);
-                    }
+                    string cellData = excelData.Rows[row][col].ToString();
+                    EntityColumnDTO columnDTO = columnsDTO[col];
 
-                    break;
+                    if (columnDTO.IsNullable == true && string.IsNullOrEmpty(cellData))
+                    {
+                        rowValidationFailed = true;
+                        badRows.Add(badRow);
+                        if (!errorColumnNames.Contains(columnDTO.EntityColumnName))
+                        {
+                            errorColumnNames.Add(columnDTO.EntityColumnName);
+                        }
+
+                        break;
+                    }
                 }
+            }
+            else
+            {
+                for (int col = 0; col < excelData.Columns.Count - 2; col++)
+                {
+                    string cellData = excelData.Rows[row][col].ToString();
+                    EntityColumnDTO columnDTO = columnsDTO[col];
+
+                    if (columnDTO.IsNullable == true && string.IsNullOrEmpty(cellData))
+                    {
+                        rowValidationFailed = true;
+                        badRows.Add(badRow);
+                        if (!errorColumnNames.Contains(columnDTO.EntityColumnName))
+                        {
+                            errorColumnNames.Add(columnDTO.EntityColumnName);
+                        }
+
+                        break;
+                    }
+                }
+
             }
 
             if (!rowValidationFailed)
@@ -1313,16 +1337,31 @@ public class ExcelService : IExcelService
         DataTable validRowsDataTable = validationResult.SuccessData;
         DataTable successdata = validRowsDataTable.Clone();
         List<int> primaryKeyColumns = new List<int>();
-
-        for (int col = 0; col < validRowsDataTable.Columns.Count - 3; col++)
+       if(validRowsDataTable.Columns.Contains( "ErrorMessage"))
         {
-            EntityColumnDTO columnDTO = columnsDTO[col];
-            if (columnDTO.ColumnPrimaryKey)
+            for (int col = 0; col < validRowsDataTable.Columns.Count - 3; col++)
             {
-                primaryKeyColumns.Add(col);
-                columnName = columnDTO.EntityColumnName; // Set the primary key column name
+                EntityColumnDTO columnDTO = columnsDTO[col];
+                if (columnDTO.ColumnPrimaryKey)
+                {
+                    primaryKeyColumns.Add(col);
+                    columnName = columnDTO.EntityColumnName; // Set the primary key column name
+                }
             }
         }
+        else
+        {
+            for (int col = 0; col < validRowsDataTable.Columns.Count -2; col++)
+            {
+                EntityColumnDTO columnDTO = columnsDTO[col];
+                if (columnDTO.ColumnPrimaryKey)
+                {
+                    primaryKeyColumns.Add(col);
+                    columnName = columnDTO.EntityColumnName; // Set the primary key column name
+                }
+            }
+        }
+       
 
         HashSet<string> seenValues = new HashSet<string>();
         var ids = await GetAllIdsFromDynamicTable(tableName);
