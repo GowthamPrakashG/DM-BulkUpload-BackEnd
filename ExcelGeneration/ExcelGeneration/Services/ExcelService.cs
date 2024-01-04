@@ -264,8 +264,13 @@ public class ExcelService : IExcelService
                     string[] values = cleanedRow.Split(',');
 
                     // Display each ErrorRowNumber on a separate row
-                    columnNamesWorksheet.Range[rowIndex, 1].Text = values[0];  // Assuming id is the first column
-                    columnNamesWorksheet.Range[rowIndex, 2].Text = values[1];  // Assuming username is the second column
+                    //columnNamesWorksheet.Range[rowIndex, 1].Text = values[0];  // Assuming id is the first column
+                    //columnNamesWorksheet.Range[rowIndex, 2].Text = values[1];  // Assuming username is the second column
+                    // Display each ErrorRowNumber on a separate row
+                    for (int columnIndex = 0; columnIndex < values.Length; columnIndex++)
+                    {
+                        columnNamesWorksheet.Range[rowIndex, columnIndex + 1].Text = values[columnIndex];
+                    }
                     columnNamesWorksheet.Range[rowIndex, columns.Count + 1].Text = errorMessage;
                     columnNamesWorksheet.Range[rowIndex, columns.Count + 2].Text = errorRowNumbers[i - 1]; // Use (i - 1) to get the corresponding ErrorRowNumber
                     rowIndex++;
