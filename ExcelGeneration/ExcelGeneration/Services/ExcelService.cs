@@ -1457,7 +1457,41 @@ public class ExcelService : IExcelService
         // Return both results
         return new ValidationResult { ErrorRowNumber = values, Filedatas = baddatas, errorMessages = errorMessages };
     }
-    
+
+    public async Task<ValidationResult> resultparamsforrange(ValidationResultData validationResult, string comma_separated_string, string tableName)
+    {
+
+        var badRowsPrimaryKey = validationResult.BadRows;
+
+
+        string columnName = validationResult.Column_Name;
+
+        badRowsPrimaryKey = badRowsPrimaryKey.Where(x => x != "").ToList();
+        string values = string.Join(",", badRowsPrimaryKey.Select(row => row.Split(',').Last()));
+
+        badRowsPrimaryKey.Insert(0, comma_separated_string);
+
+        List<string> modifiedRows = badRowsPrimaryKey.Select(row =>
+        {
+            int lastCommaIndex = row.LastIndexOf(',');
+            if (lastCommaIndex >= 0)
+            {
+                return row.Substring(0, lastCommaIndex);
+            }
+            else
+            {
+                return row; // No comma found, keep the original string
+            }
+        }).Where(row => !string.IsNullOrEmpty(row)).ToList();
+        badRowsPrimaryKey = modifiedRows;
+        string delimiter = ";"; // Specify the delimiter you want
+        string baddatas = string.Join(delimiter, badRowsPrimaryKey);
+        string errorMessages = "Incorrect Range Value on " + columnName + " " + "in" + " " + tableName;
+
+        // Return both results
+        return new ValidationResult { ErrorRowNumber = values, Filedatas = baddatas, errorMessages = errorMessages };
+    }
+
     public async Task<LogDTO> Createlog(string tableName, List<string> filedata, string fileName, int successdata, List<string> errorMessage, int total_count, List<string> ErrorRowNumber)
 
     {
@@ -1969,6 +2003,97 @@ public class ExcelService : IExcelService
         }
     }
 
+    public async Task<ValidationResultData> ValidateRange(ValidationResultData validationResult, List<EntityColumnDTO> columnsDTO, string tableName)
+    {
+        List<string> badRows = new List<string>();
+        List<string> errorColumnNames = new List<string>();
+        var excelData = validationResult.SuccessData;
+        DataTable validRowsDataTable = excelData.Clone(); // Create a DataTable to store valid rows
+        for (int row = 0; row < excelData.Rows.Count; row++)
+        {
+            bool rowValidationFailed = false;
+
+            string badRow = string.Join(",", excelData.Rows[row].ItemArray);
+
+            if (excelData.Columns.Contains("ErrorMessage"))
+            {
+                for (int col = 0; col < excelData.Columns.Count - 3; col++)
+                {
+                    string cellData = excelData.Rows[row][col].ToString();
+                    EntityColumnDTO columnDTO = columnsDTO[col];
+
+                    if (double.TryParse(cellData, out double numericValue))
+                    {
+                        if (columnDTO.MinLength > 0 && numericValue < columnDTO.MinLength)
+                        {
+                            // Your logic for when numericValue is less than MinLength
+                            rowValidationFailed = true;
+                            badRows.Add(badRow);
+                            if (!errorColumnNames.Contains(columnDTO.EntityColumnName))
+                            {
+                                errorColumnNames.Add(columnDTO.EntityColumnName);
+                            }
+                            break;
+                        }
+
+                        if (columnDTO.MaxLength > 0 && numericValue > columnDTO.MaxLength)
+                        {
+                            // Your logic for when numericValue is greater than MaxLength
+                            rowValidationFailed = true;
+                            badRows.Add(badRow);
+                            if (!errorColumnNames.Contains(columnDTO.EntityColumnName))
+                            {
+                                errorColumnNames.Add(columnDTO.EntityColumnName);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (int col = 0; col < excelData.Columns.Count - 2; col++)
+                {
+                    string cellData = excelData.Rows[row][col].ToString();
+                    EntityColumnDTO columnDTO = columnsDTO[col];
+
+                    if (double.TryParse(cellData, out double numericValue))
+                    {
+                        if (columnDTO.MinLength > 0 && numericValue < columnDTO.MinLength)
+                        {
+                            // Your logic for when numericValue is less than MinLength
+                            rowValidationFailed = true;
+                            badRows.Add(badRow);
+                            if (!errorColumnNames.Contains(columnDTO.EntityColumnName))
+                            {
+                                errorColumnNames.Add(columnDTO.EntityColumnName);
+                            }
+                            break;
+                        }
+
+                        if (columnDTO.MaxLength > 0 && numericValue > columnDTO.MaxLength)
+                        {
+                            // Your logic for when numericValue is greater than MaxLength
+                            rowValidationFailed = true;
+                            badRows.Add(badRow);
+                            if (!errorColumnNames.Contains(columnDTO.EntityColumnName))
+                            {
+                                errorColumnNames.Add(columnDTO.EntityColumnName);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!rowValidationFailed)
+            {
+                validRowsDataTable.Rows.Add(excelData.Rows[row].ItemArray);
+            }
+        }
+        // Return both results
+        return new ValidationResultData { BadRows = badRows, SuccessData = validRowsDataTable, errorcolumns = errorColumnNames, Column_Name = string.Empty };
+    }
 }
 
 

@@ -29,6 +29,8 @@ namespace ExcelGeneration.Services.Interface
         public (int EntityId, string EntityColumnName) GetAllEntityColumnData(int checklistEntityValue);
 
         public (string TableName, List<dynamic> Rows) GetTableDataByChecklistEntityValue(int checklistEntityValue);
+        public Task<ValidationResultData> ValidateRange(ValidationResultData validationResult, List<EntityColumnDTO> columnsDTO, string tableName);
+        public Task<ValidationResult> resultparamsforrange(ValidationResultData validationResult, string comma_separated_string, string tableName);
     }
 
 
