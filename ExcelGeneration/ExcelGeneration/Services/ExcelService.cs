@@ -12,6 +12,7 @@ using System.Text;
 using System.Drawing;
 using ExcelGeneration.Services;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 
 public class ExcelService : IExcelService
@@ -1263,6 +1264,10 @@ public class ExcelService : IExcelService
                 ListEntityId = column.ListEntityId,
                 ListEntityKey = column.ListEntityKey,
                 ListEntityValue = column.ListEntityValue,
+                MinLength = column.MinLength,
+                MaxLength = column.MaxLength,
+                MinRange = column.MinRange,
+                MaxRange = column.MaxRange
             }).ToList();
         if (columnsDTO.Count == 0)
         {
@@ -1492,7 +1497,7 @@ public class ExcelService : IExcelService
         badRowsPrimaryKey = modifiedRows;
         string delimiter = ";"; // Specify the delimiter you want
         string baddatas = string.Join(delimiter, badRowsPrimaryKey);
-        string errorMessages = "Incorrect Range Value on " + columnName + " " + "in" + " " + tableName;
+        string errorMessages = "Incorrect Range Value on "+ " " + columnName + " " + "in" + " " + tableName;
 
         // Return both results
         return new ValidationResult { ErrorRowNumber = values, Filedatas = baddatas, errorMessages = errorMessages };
@@ -2014,11 +2019,12 @@ public class ExcelService : IExcelService
         List<string> badRows = new List<string>();
         List<string> errorColumnNames = new List<string>();
         var excelData = validationResult.SuccessData;
+        string columnName = string.Empty;
         DataTable validRowsDataTable = excelData.Clone(); // Create a DataTable to store valid rows
         for (int row = 0; row < excelData.Rows.Count; row++)
         {
             bool rowValidationFailed = false;
-
+            
             string badRow = string.Join(",", excelData.Rows[row].ItemArray);
 
             if (excelData.Columns.Contains("ErrorMessage"))
@@ -2030,7 +2036,7 @@ public class ExcelService : IExcelService
 
                     if (double.TryParse(cellData, out double numericValue))
                     {
-                        if (columnDTO.MinLength > 0 && numericValue < columnDTO.MinLength)
+                        if (columnDTO.MinRange > 0 && numericValue < columnDTO.MinRange)
                         {
                             // Your logic for when numericValue is less than MinLength
                             rowValidationFailed = true;
@@ -2038,11 +2044,12 @@ public class ExcelService : IExcelService
                             if (!errorColumnNames.Contains(columnDTO.EntityColumnName))
                             {
                                 errorColumnNames.Add(columnDTO.EntityColumnName);
+                                columnName = columnDTO.EntityColumnName; // Set the range column name
                             }
                             break;
                         }
 
-                        if (columnDTO.MaxLength > 0 && numericValue > columnDTO.MaxLength)
+                        if (columnDTO.MaxRange > 0 && numericValue > columnDTO.MaxRange)
                         {
                             // Your logic for when numericValue is greater than MaxLength
                             rowValidationFailed = true;
@@ -2050,6 +2057,7 @@ public class ExcelService : IExcelService
                             if (!errorColumnNames.Contains(columnDTO.EntityColumnName))
                             {
                                 errorColumnNames.Add(columnDTO.EntityColumnName);
+                                columnName = columnDTO.EntityColumnName; // Set the range column name
                             }
                             break;
                         }
@@ -2065,7 +2073,7 @@ public class ExcelService : IExcelService
 
                     if (double.TryParse(cellData, out double numericValue))
                     {
-                        if (columnDTO.MinLength > 0 && numericValue < columnDTO.MinLength)
+                        if (columnDTO.MinRange > 0 && numericValue < columnDTO.MinRange)
                         {
                             // Your logic for when numericValue is less than MinLength
                             rowValidationFailed = true;
@@ -2073,11 +2081,12 @@ public class ExcelService : IExcelService
                             if (!errorColumnNames.Contains(columnDTO.EntityColumnName))
                             {
                                 errorColumnNames.Add(columnDTO.EntityColumnName);
+                                columnName = columnDTO.EntityColumnName; // Set the range column name
                             }
                             break;
                         }
 
-                        if (columnDTO.MaxLength > 0 && numericValue > columnDTO.MaxLength)
+                        if (columnDTO.MaxRange > 0 && numericValue > columnDTO.MaxRange)
                         {
                             // Your logic for when numericValue is greater than MaxLength
                             rowValidationFailed = true;
@@ -2085,6 +2094,7 @@ public class ExcelService : IExcelService
                             if (!errorColumnNames.Contains(columnDTO.EntityColumnName))
                             {
                                 errorColumnNames.Add(columnDTO.EntityColumnName);
+                                columnName = columnDTO.EntityColumnName; // Set the range column name
                             }
                             break;
                         }
@@ -2098,7 +2108,7 @@ public class ExcelService : IExcelService
             }
         }
         // Return both results
-        return new ValidationResultData { BadRows = badRows, SuccessData = validRowsDataTable, errorcolumns = errorColumnNames, Column_Name = string.Empty };
+        return new ValidationResultData { BadRows = badRows, SuccessData = validRowsDataTable, errorcolumns = errorColumnNames, Column_Name = columnName };
     }
 }
 
