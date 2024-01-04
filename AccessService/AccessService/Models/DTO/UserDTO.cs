@@ -18,7 +18,7 @@ namespace AccessService.Model.DTO
         public string Email { get; set; }
 
         [DataType(DataType.Password)]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         [RegularExpression(@"^\d{10}$", ErrorMessage = "Invalid Phone Number")]
         public string Phonenumber { get; set; }
