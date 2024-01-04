@@ -250,6 +250,7 @@ public class ExcelService : IExcelService
 
                 // Set the column name as "ErrorMessage" for the last column after processing all rows
                 columnNamesWorksheet.Range[rowIndex - 1, columns.Count + 1].Text = "ErrorMessage";
+                columnNamesWorksheet.Range[rowIndex - 1, columns.Count + 1].ColumnWidth = 70;
                 columnNamesWorksheet.Range[rowIndex - 1, columns.Count + 2].Text = "ErrorRowNumber";
                 // Split ErrorRowNumber into individual values
                 string[] errorRowNumbers = errorrowNumber.Split(',');
