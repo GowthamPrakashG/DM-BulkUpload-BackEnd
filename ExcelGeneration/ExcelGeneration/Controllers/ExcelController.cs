@@ -190,7 +190,7 @@ namespace ExcelGeneration.Controllers
 
                     //Range Validation
 
-                    validationResultData = await _excelService.ValidateRange(validationResult, columnsDTO, tableName);
+                    validationResultData = await _excelService.ValidateRange(validationResultData, columnsDTO, tableName);
 
                     if (validationResultData.BadRows.Count > 0)
                     {

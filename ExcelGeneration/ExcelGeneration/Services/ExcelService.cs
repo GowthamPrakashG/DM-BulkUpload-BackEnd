@@ -242,6 +242,11 @@ public class ExcelService : IExcelService
             var logChilds = await _exportExcelService.GetAllLogChildsByParentIDAsync(parentId.Value);
             int rowIndex = 3;
 
+            // Set the column name as "ErrorMessage" for the last column after processing all rows
+            columnNamesWorksheet.Range[rowIndex - 1, columns.Count + 1].Text = "ErrorMessage";
+            columnNamesWorksheet.Range[rowIndex - 1, columns.Count + 1].ColumnWidth = 70;
+            columnNamesWorksheet.Range[rowIndex - 1, columns.Count + 2].Text = "ErrorRowNumber";
+
             foreach (var logChild in logChilds)
             {
                 string[] rows = logChild.Filedata.Split(';');
@@ -249,10 +254,7 @@ public class ExcelService : IExcelService
                 string errorMessage = logChild.ErrorMessage;
                 string errorrowNumber = logChild.ErrorRowNumber;
 
-                // Set the column name as "ErrorMessage" for the last column after processing all rows
-                columnNamesWorksheet.Range[rowIndex - 1, columns.Count + 1].Text = "ErrorMessage";
-                columnNamesWorksheet.Range[rowIndex - 1, columns.Count + 1].ColumnWidth = 70;
-                columnNamesWorksheet.Range[rowIndex - 1, columns.Count + 2].Text = "ErrorRowNumber";
+                
                 // Split ErrorRowNumber into individual values
                 string[] errorRowNumbers = errorrowNumber.Split(',');
 
